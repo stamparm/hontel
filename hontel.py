@@ -6,6 +6,7 @@
 import fcntl
 import os
 import re
+import signal
 import SocketServer
 import stat
 import subprocess
@@ -17,8 +18,8 @@ try:
 except ImportError:
     exit("[!] please install telnetsrv (e.g. 'pip install telnetsrv')")
 
-AUTH_USERNAME = None
-AUTH_PASSWORD = None
+AUTH_USERNAME = "root"
+AUTH_PASSWORD = "123456"
 WELCOME = None
 LOG_PATH = "/var/log/%s.log" % os.path.split(__file__)[-1].split('.')[0]
 READ_SIZE = 1024
@@ -28,6 +29,8 @@ LOG_FILE_PERMISSIONS = stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IROT
 LOG_HANDLE_FLAGS = os.O_APPEND | os.O_CREAT | os.O_WRONLY
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 USE_BUSYBOX = True
+LISTEN_ADDRESS = "0.0.0.0"
+LISTEN_PORT = 23
 
 if CHECK_CHROOT:
     chrooted = False
@@ -63,6 +66,13 @@ class HoneyTelnetHandler(TelnetHandler):
     authNeedUser = AUTH_USERNAME is not None
     authNeedPass = AUTH_PASSWORD is not None
 
+    def _readline_echo(self, char, echo):
+        if "^C ABORT" in char:
+            char = "^C\n"
+            os.killpg(self.process.pid, signal.SIGINT)
+        if self._readline_do_echo(echo):
+            self.write(char)
+
     def _log(self, logtype, msg=None):
         line = '[%s] [%s:%s] %s%s\n' % (time.strftime(TIME_FORMAT, time.localtime(time.time())), self.client_address[0], self.client_address[1], logtype, ": %s" % msg if msg is not None else "")
         os.write(self._getLogHandle(), line)
@@ -92,7 +102,7 @@ class HoneyTelnetHandler(TelnetHandler):
 
     def session_start(self):
         self._log("SESSION_START")
-        self.process = subprocess.Popen(SHELL, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        self.process = subprocess.Popen(SHELL, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, preexec_fn=os.setsid)
 
         flags = fcntl.fcntl(self.process.stdout, fcntl.F_GETFL)
         fcntl.fcntl(self.process.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
@@ -142,7 +152,7 @@ class HoneyTelnetHandler(TelnetHandler):
 class TelnetServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     allow_reuse_address = True
 
-server = TelnetServer(("0.0.0.0", 23), HoneyTelnetHandler)
+server = TelnetServer((LISTEN_ADDRESS, LISTEN_PORT), HoneyTelnetHandler)
 try:
     server.serve_forever()
 except KeyboardInterrupt:
