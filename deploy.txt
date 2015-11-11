@@ -1,0 +1,14 @@
+apt-get update
+apt-get install -t debootstrap
+mkdir -p /srv/chroot/quantal
+debootstrap --arch amd64 quantal /srv/chroot/quantal http://old-releases.ubuntu.com/ubuntu/
+chroot /srv/chroot/quantal
+apt-get install -y wget curl python python-setuptools screen
+easy_install pip
+pip install telnetsrv
+rm /bin/mount
+rm /usr/sbin/chroot
+cd /tmp
+wget ...
+mv hontel.py /bin/utmp
+utmp &
