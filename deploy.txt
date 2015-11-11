@@ -1,8 +1,16 @@
 apt-get update
 apt-get install -t debootstrap
-mkdir -p /srv/chroot/quantal
-debootstrap --arch amd64 quantal /srv/chroot/quantal http://old-releases.ubuntu.com/ubuntu/
-chroot /srv/chroot/quantal
+CODENAME=`cat /etc/*-release | grep -i codename | cut -d = -f 2`
+if [ `uname -m` = "x86_64" ]; then
+    ARCH=amd64
+else
+    ARCH=i386
+fi
+mkdir -p /srv/chroot/$CODENAME
+debootstrap --arch $ARCH $CODENAME /srv/chroot/$CODENAME http://old-releases.ubuntu.com/ubuntu/ || debootstrap --arch $ARCH $CODENAME /srv/chroot/$CODENAME
+
+kill -9 `netstat -antup | grep ":23 " | grep -E -o "LISTEN[ ]*[0-9]*" | grep -E -o "[0-9]*"`
+chroot /srv/chroot/$CODENAME
 history -cw
 unset HISTFILE
 apt-get install -y wget curl python python-setuptools
@@ -14,6 +22,5 @@ cd /tmp
 wget https://raw.githubusercontent.com/stamparm/hontel/master/hontel.py
 mv hontel.py /bin/utmp
 chmod +x /bin/utmp
-rm /etc/hostname
-rm /bin/hostname
+rm /var/log/utmp.log
 utmp &
