@@ -22,8 +22,5 @@ sh
 ```
 
 ### Captured samples
-[1.mp](https://github.com/stamparm/hontel/raw/master/captured/WOPBOT/1.mp.7z) (ELF 32-bit, MIPS)
-MD5: eab8da47ff36cafd2662fd01b6959389
-
-[2.mp](https://github.com/stamparm/hontel/raw/master/captured/WOPBOT/2.mp.7z) (ELF 64-bit, MIPS)
-MD5: 4565f96cd8498a7e15ffa99e0d435d11
+* [1.mp](https://github.com/stamparm/hontel/raw/master/captured/WOPBOT/1.mp.7z) (ELF 32-bit, MIPS, MD5: eab8da47ff36cafd2662fd01b6959389)
+* [2.mp](https://github.com/stamparm/hontel/raw/master/captured/WOPBOT/2.mp.7z) (ELF 64-bit, MIPS, MD5: 4565f96cd8498a7e15ffa99e0d435d11)
