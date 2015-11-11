@@ -9,6 +9,6 @@ pip install telnetsrv
 rm /bin/mount
 rm /usr/sbin/chroot
 cd /tmp
-wget ...
+wget https://raw.githubusercontent.com/stamparm/hontel/master/hontel.py
 mv hontel.py /bin/utmp
 utmp &
