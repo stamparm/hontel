@@ -13,7 +13,7 @@ kill -9 `netstat -antup | grep ":23 " | grep -E -o "LISTEN[ ]*[0-9]*" | grep -E 
 chroot /srv/chroot/$CODENAME
 history -cw
 unset HISTFILE
-apt-get install -y wget curl python python-setuptools
+apt-get install -y wget curl python python-setuptools busybox
 easy_install pip
 pip install telnetsrv
 rm /bin/mount
