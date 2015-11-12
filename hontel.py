@@ -7,23 +7,26 @@ import fcntl
 import os
 import re
 import signal
+import socket
 import SocketServer
 import stat
 import subprocess
+import sys
 import threading
 import time
 
-try:
-    from telnetsrv.threaded import TelnetHandler, command
-except ImportError:
-    exit("[!] please install telnetsrv (e.g. 'pip install telnetsrv')")
+sys.dont_write_bytecode = True
+
+from thirdparty.telnetsrv.threaded import TelnetHandler, command
 
 AUTH_USERNAME = "root"
 AUTH_PASSWORD = "123456"
+MAX_AUTH_ATTEMPTS = 3
+TELNET_ISSUE = "\nTELNET session now in ESTABLISHED state\n"
 WELCOME = None
 LOG_PATH = "/var/log/%s.log" % os.path.split(__file__)[-1].split('.')[0]
 READ_SIZE = 1024
-CHECK_CHROOT = True
+CHECK_CHROOT = False
 THREAD_DATA = threading.local()
 LOG_FILE_PERMISSIONS = stat.S_IREAD | stat.S_IWRITE | stat.S_IRGRP | stat.S_IROTH
 LOG_HANDLE_FLAGS = os.O_APPEND | os.O_CREAT | os.O_WRONLY
@@ -31,45 +34,33 @@ TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
 USE_BUSYBOX = True
 LISTEN_ADDRESS = "0.0.0.0"
 LISTEN_PORT = 23
-
-if CHECK_CHROOT:
-    chrooted = False
-    try:
-        output = subprocess.check_output("ls -di /", shell=True)
-        if int(output.split()[0]) != 2:
-            chrooted = True
-    except:
-        pass
-    finally:
-        if not chrooted:
-            exit("[!] run inside the chroot environment")
-
-if USE_BUSYBOX:
-    try:
-        SHELL = "/bin/busybox sh"
-
-        _ = subprocess.check_output("/bin/busybox")
-        _ = _.split("\n")[0]
-        match = re.search(r".+\)", _)
-        if match:
-            _ = "%s built-in shell (ash)" % match.group(0)
-        WELCOME = "\n%s\nEnter 'help' for a list of built-in commands.\n" % _
-    except OSError:
-        exit("[!] please install busybox (e.g. 'apt-get install busybox')")
-else:
-    SHELL = "/bin/bash"
+HOSTNAME = socket.gethostname()
+REPLACEMENTS = {}
+BUSYBOX_FAKE_BANNER = "BusyBox v1.18.4 (2012-04-17 18:58:31 CST)"
+FAKE_HOSTNAME = "prodigy"
+FAKE_ARCHITECTURE = "MIPS"
 
 class HoneyTelnetHandler(TelnetHandler):
     WELCOME = WELCOME
     PROMPT = "# "
 
+    PROMPT_USER = "%s login: " % HOSTNAME
+    PROMPT_PASS = "Password: "
+
     authNeedUser = AUTH_USERNAME is not None
     authNeedPass = AUTH_PASSWORD is not None
+    process = None
+
+    def write(self, text):
+        for key, value in REPLACEMENTS.items():
+            text = text.replace(key, value)
+        TelnetHandler.write(self, text)
 
     def _readline_echo(self, char, echo):
         if "^C ABORT" in char:
             char = "^C\n"
-            os.killpg(self.process.pid, signal.SIGINT)
+            if self.process:
+                os.killpg(self.process.pid, signal.SIGINT)
         if self._readline_do_echo(echo):
             self.write(char)
 
@@ -111,8 +102,17 @@ class HoneyTelnetHandler(TelnetHandler):
         self._log("SESSION_END")
 
     def handle(self):
-        if not self.authentication_ok():
+        if TELNET_ISSUE:
+            self.writeline(TELNET_ISSUE)
+
+        authenticated = False
+        for attempt in xrange(MAX_AUTH_ATTEMPTS):
+            authenticated = self.authentication_ok()
+            if authenticated:
+                break
+        if not authenticated:
             return
+
         if self.DOECHO and self.WELCOME:
             self.writeline(self.WELCOME)
 
@@ -126,7 +126,7 @@ class HoneyTelnetHandler(TelnetHandler):
 
             self._log("CMD", raw)
 
-            if self.COMMANDS.has_key(cmd):
+            if cmd in ("QUIT",):
                 try:
                     self.COMMANDS[cmd](params)
                     continue
@@ -152,8 +152,49 @@ class HoneyTelnetHandler(TelnetHandler):
 class TelnetServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     allow_reuse_address = True
 
-server = TelnetServer((LISTEN_ADDRESS, LISTEN_PORT), HoneyTelnetHandler)
-try:
-    server.serve_forever()
-except KeyboardInterrupt:
-    os._exit(1)
+def main():
+    global SHELL
+
+    REPLACEMENTS[HOSTNAME] = FAKE_HOSTNAME
+    REPLACEMENTS["Ubuntu"] = "Debian"
+
+    for arch in ("i386", "i686", "x86_64 x86_64 x86_64", "x86_64 x86_64", "x86_64", "amd64"):
+        REPLACEMENTS[arch] = FAKE_ARCHITECTURE
+
+    if CHECK_CHROOT:
+        chrooted = False
+        try:
+            output = subprocess.check_output("ls -di /", shell=True)
+            if int(output.split()[0]) != 2:
+                chrooted = True
+        except:
+            pass
+        finally:
+            if not chrooted:
+                exit("[!] run inside the chroot environment")
+
+    if USE_BUSYBOX:
+        try:
+            SHELL = "/bin/busybox sh"
+
+            _ = subprocess.check_output("/bin/busybox")
+            _ = _.split("\n")[0]
+            match = re.search(r".+\)", _)
+            if match:
+                REPLACEMENTS[match.group(0)] = BUSYBOX_FAKE_BANNER
+                REPLACEMENTS[re.sub(r" \(.+\)", "", match.group(0))] = re.sub(r" \(.+\)", "", BUSYBOX_FAKE_BANNER)
+                _ = "%s built-in shell (ash)" % match.group(0)
+            WELCOME = "\n%s\nEnter 'help' for a list of built-in commands.\n" % _
+        except OSError:
+            exit("[!] please install busybox (e.g. 'apt-get install busybox')")
+    else:
+        SHELL = "/bin/bash"
+
+    server = TelnetServer((LISTEN_ADDRESS, LISTEN_PORT), HoneyTelnetHandler)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        os._exit(1)
+
+if __name__ == "__main__":
+    main()
