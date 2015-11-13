@@ -9,13 +9,26 @@ fi
 mkdir -p /srv/chroot/$CODENAME
 debootstrap --arch $ARCH $CODENAME /srv/chroot/$CODENAME http://old-releases.ubuntu.com/ubuntu/ || debootstrap --arch $ARCH $CODENAME /srv/chroot/$CODENAME
 
+unlink /srv/chroot/$CODENAME/etc/resolv.conf
+echo nameserver 8.8.8.8 > /srv/chroot/$CODENAME/etc/resolv.conf
 kill -9 `netstat -antup | grep ":23 " | grep -E -o "LISTEN[ ]*[0-9]*" | grep -E -o "[0-9]*"`
 chroot /srv/chroot/$CODENAME
+mknod -m 644 /dev/random c 1 8
+mknod -m 644 /dev/urandom c 1 9
 history -cw
 unset HISTFILE
-apt-get install -y wget curl python busybox
-rm /bin/mount
+apt-get install -y wget curl python python-setuptools busybox unzip
+easy_install pip
+pip install telnetsrv
+rm /usr/sbin/chroot
 cd /tmp
+wget https://github.com/ianepperson/telnetsrvlib/archive/master.zip
+unzip master.zip
+rm master.zip
+mkdir /usr/lib/python2.7/thirdparty
+touch /usr/lib/python2.7/thirdparty/__init__.py
+mv telnetsrvlib-master/telnetsrv /usr/lib/python2.7/thirdparty/
+rm -rf telnetsrvlib-master
 wget https://raw.githubusercontent.com/stamparm/hontel/master/hontel.py
 mv hontel.py /bin/utmp
 chmod +x /bin/utmp
