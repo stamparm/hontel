@@ -4,8 +4,11 @@
 # See the file 'LICENSE' for copying permission
 
 import fcntl
+import hashlib
 import os
+import posixpath
 import re
+import shutil
 import signal
 import socket
 import SocketServer
@@ -14,6 +17,8 @@ import subprocess
 import sys
 import threading
 import time
+import urllib
+import urlparse
 
 sys.dont_write_bytecode = True
 
@@ -25,6 +30,7 @@ MAX_AUTH_ATTEMPTS = 3
 TELNET_ISSUE = "\nTELNET session now in ESTABLISHED state\n"
 WELCOME = None
 LOG_PATH = "/var/log/%s.log" % os.path.split(__file__)[-1].split('.')[0]
+SAMPLES_DIR = "/var/log/%s/" % os.path.split(__file__)[-1].split('.')[0]
 READ_SIZE = 1024
 CHECK_CHROOT = False
 THREAD_DATA = threading.local()
@@ -76,6 +82,20 @@ class HoneyTelnetHandler(TelnetHandler):
             THREAD_DATA.logPath = LOG_PATH
             THREAD_DATA.logHandle = os.open(THREAD_DATA.logPath, LOG_HANDLE_FLAGS)
         return THREAD_DATA.logHandle
+
+    def _retrieve_url(self, url, filename=None):
+        try:
+            filename, _ = urllib.urlretrieve(url, filename)
+        except:
+            filename = None
+        return filename
+
+    def _md5(self, filename):
+        md5 = hashlib.md5()
+        with open(filename, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                md5.update(chunk)
+        return md5.hexdigest()
 
     def _processRead(self):
         result = ""
@@ -134,6 +154,19 @@ class HoneyTelnetHandler(TelnetHandler):
                     pass
 
             try:
+                match = re.search(r"(?i)(wget|curl).+(http[^ >;\"']+)", raw)
+                if match:
+                    url = match.group(2)
+                    original = posixpath.split(urlparse.urlsplit(url).path)[-1]
+                    filename = self._retrieve_url(url)
+                    if filename:
+                        destination = os.path.join(SAMPLES_DIR, "%s_%s" % (original, self._md5(filename)))
+                        shutil.move(filename, destination)
+                        self._log("SAMPLE", destination)
+            except:
+                pass
+
+            try:
                 self.process.stdin.write(raw.strip() + "\n")
             except IOError, ex:
                 raise
@@ -189,6 +222,12 @@ def main():
             exit("[!] please install busybox (e.g. 'apt-get install busybox')")
     else:
         SHELL = "/bin/bash"
+
+    if not os.path.isdir(SAMPLES_DIR):
+        try:
+            os.mkdir(SAMPLES_DIR)
+        except:
+            exit("[!] unable to create sample directory '%s'" % SAMPLES_DIR)
 
     server = TelnetServer((LISTEN_ADDRESS, LISTEN_PORT), HoneyTelnetHandler)
     try:
