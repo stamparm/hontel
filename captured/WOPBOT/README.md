@@ -24,6 +24,7 @@ sh
 
 ### Captured samples
 * [1.mp](samples/1.mp.7z) (`ELF 32-bit, MIPS-I, MD5: eab8da47ff36cafd2662fd01b6959389`)
+* [2.mp](samples/2_2.mp.7z) (`ELF 32-bit, MIPS-I, MD5: 78446a24075294968d1f48e76323665c`)
 * [2.mp](samples/2.mp.7z) (`ELF 64-bit, MIPS-I, MD5: 4565f96cd8498a7e15ffa99e0d435d11`)
 * [.arm](samples/arm.7z) (`ELF 32-bit, ARM, MD5: 8a7e32db13844f2d441340befd8dd8e9`)
 * [.m68k](samples/m68k.7z) (`ELF 32-bit, Motorola 68020, MD5: 67c99761fac4c12e06fcf17fa1598360`)
