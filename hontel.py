@@ -45,6 +45,7 @@ REPLACEMENTS = {}
 BUSYBOX_FAKE_BANNER = "BusyBox v1.18.4 (2012-04-17 18:58:31 CST)"
 FAKE_HOSTNAME = "prodigy"
 FAKE_ARCHITECTURE = "MIPS"
+RUN_ATTACKERS_COMMANDS = True  # set to False to prevent execution of attacker's commands
 
 class HoneyTelnetHandler(TelnetHandler):
     WELCOME = WELCOME
@@ -167,7 +168,10 @@ class HoneyTelnetHandler(TelnetHandler):
                 pass
 
             try:
-                self.process.stdin.write(raw.strip() + "\n")
+                if RUN_ATTACKERS_COMMANDS:
+                    self.process.stdin.write(raw.strip() + "\n")
+                else:
+                    self.process.stdin.write("\n")
             except IOError, ex:
                 raise
             finally:
