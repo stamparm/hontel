@@ -26,6 +26,9 @@ debootstrap --arch $ARCH $CODENAME /srv/chroot/$CODENAME $ARCHIVE || debootstrap
 unlink /srv/chroot/$CODENAME/etc/resolv.conf
 echo nameserver 8.8.8.8 > /srv/chroot/$CODENAME/etc/resolv.conf
 kill -9 `netstat -antup | grep ":23 " | grep -E -o "LISTEN[ ]*[0-9]*" | grep -E -o "[0-9]*"`
+pkill -9 -f busybox
+pkill -9 -f utmp
+
 chroot /srv/chroot/$CODENAME
 mknod -m 644 /dev/random c 1 8
 mknod -m 644 /dev/urandom c 1 9
@@ -49,5 +52,5 @@ chmod +x /bin/utmp
 rm /var/log/utmp.log
 utmp &
 exit
-# log file: /srv/chroot/jessie/var/log/utmp.log
-# dropped samples (e.g. malware) directory: /srv/chroot/jessie/var/log/utmp/
+# log file: /srv/chroot/$CODENAME/var/log/utmp.log
+# dropped samples (e.g. malware) directory: /srv/chroot/$CODENAME/var/log/utmp/
