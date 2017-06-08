@@ -43,3 +43,4 @@ mv hontel.py /bin/utmp
 chmod +x /bin/utmp
 rm /var/log/utmp.log
 utmp &
+exit
