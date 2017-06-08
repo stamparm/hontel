@@ -1,13 +1,22 @@
 apt-get update
 apt-get install -y debootstrap
+
 CODENAME=`cat /etc/apt/sources.list | grep -E '^deb http[^ ]+ [a-z]+ ' | head -1 | cut -d ' ' -f 3`
+
 if [ `uname -m` = "x86_64" ]; then
     ARCH=amd64
 else
     ARCH=i386
 fi
+
+if [ -n "`cat /etc/issue | grep Ubuntu`" ]; then
+    ARCHIVE=http://old-releases.ubuntu.com/ubuntu/
+else
+    ARCHIVE=http://cdn-fastly.deb.debian.org/debian/
+fi
+
 mkdir -p /srv/chroot/$CODENAME
-debootstrap --arch $ARCH $CODENAME /srv/chroot/$CODENAME http://old-releases.ubuntu.com/ubuntu/ || debootstrap --arch $ARCH $CODENAME /srv/chroot/$CODENAME
+debootstrap --arch $ARCH $CODENAME /srv/chroot/$CODENAME $ARCHIVE || debootstrap --arch $ARCH $CODENAME /srv/chroot/$CODENAME
 
 unlink /srv/chroot/$CODENAME/etc/resolv.conf
 echo nameserver 8.8.8.8 > /srv/chroot/$CODENAME/etc/resolv.conf
