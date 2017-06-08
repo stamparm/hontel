@@ -1,6 +1,6 @@
 apt-get update
 apt-get install -t debootstrap
-CODENAME=`cat /etc/*-release | grep -i codename | cut -d = -f 2`
+CODENAME=`cat /etc/apt/sources.list | grep -E '^deb http[^ ]+ [a-z]+ ' | head -1 | cut -d ' ' -f 3`
 if [ `uname -m` = "x86_64" ]; then
     ARCH=amd64
 else
