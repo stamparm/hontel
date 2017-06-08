@@ -44,3 +44,5 @@ chmod +x /bin/utmp
 rm /var/log/utmp.log
 utmp &
 exit
+# log file: /srv/chroot/jessie/var/log/utmp.log
+# dropped samples (e.g. malware) directory: /srv/chroot/jessie/var/log/utmp/
