@@ -122,6 +122,10 @@ class HoneyTelnetHandler(TelnetHandler):
     def session_end(self):
         self._log("SESSION_END")
 
+        # Reference: https://github.com/ianepperson/telnetsrvlib/blob/master/telnetsrv/telnetsrvlib.py#L534-L546
+        #            https://stackoverflow.com/a/598759
+        self.sock.close()
+
     def handle(self):
         if TELNET_ISSUE:
             self.writeline(TELNET_ISSUE)
@@ -233,7 +237,14 @@ def main():
         except:
             exit("[!] unable to create sample directory '%s'" % SAMPLES_DIR)
 
-    server = TelnetServer((LISTEN_ADDRESS, LISTEN_PORT), HoneyTelnetHandler)
+    try:
+        server = TelnetServer((LISTEN_ADDRESS, LISTEN_PORT), HoneyTelnetHandler)
+    except socket.error, ex:
+        if "Permission denied" in str(ex):
+            exit("[!] not enough permissions to listen on '%s:%s'" % (LISTEN_ADDRESS, LISTEN_PORT))
+        else:
+            raise
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:
