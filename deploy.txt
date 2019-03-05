@@ -16,7 +16,8 @@ else
 fi
 
 if [ -n "`cat /etc/issue | grep Ubuntu`" ]; then
-    ARCHIVE=http://old-releases.ubuntu.com/ubuntu/
+    #ARCHIVE=http://old-releases.ubuntu.com/ubuntu/
+    ARCHIVE=http://archive.ubuntu.com/ubuntu/
 else
     ARCHIVE=http://cdn-fastly.deb.debian.org/debian/
 fi
