@@ -1,4 +1,4 @@
-# HonTel [![Python 2.6|2.7](https://img.shields.io/badge/python-2.6|2.7-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/stamparm/hontel#license-mit)
+# HonTel [![Python 2.6|2.7](https://img.shields.io/badge/python-2.6|2.7-yellow.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/stamparm/hontel#license-mit)
 
 **HonTel** is a Honeypot for Telnet service. Basically, it is a Python v2.x application emulating the service inside the [chroot](https://help.ubuntu.com/community/BasicChroot) environment. Originally it has been designed to be run inside the Ubuntu environment, though it could be easily adapted to run inside any Linux environment.
 
